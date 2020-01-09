@@ -1,9 +1,36 @@
 
-const displayPeople = ({ catagory, contents, html }) => {
+
+const makePaginator = () => {
+    let peoplePage = 1;
+    let filmsPage = 1;
+    let vehiclesPage = 1;
+    let starshipsPage = 1;
+
+    return ({ catagory, contents, html }, action) => {
+        let page;
+        switch (catagory) {
+            case 'people':
+                page = peoplePage;
+                break;
+            case 'films':
+                page = filmsPage;
+                break;
+            case 'vehicles':
+                page = vehiclesPage;
+                break;
+            case 'starships':
+                page = starshipsPage;
+                break;
+            default:
+                break;
+        }
+
+    }
+}
+
+
+const displayPeople = ({ contents, html }) => {
     const { results, next } = contents;
-    html +=
-    `<div class="card-box">
-        <h3>${catagory.toUpperCase()}</h3>`;
 
     results.forEach(person => {
         const { name, birth_year, films } = person; // Im going to have to loop through these eventually
@@ -23,10 +50,8 @@ const displayPeople = ({ catagory, contents, html }) => {
 }
 
 
-const displayFilms = ({ catagory, contents, html }) => {
+const displayFilms = ({ contents, html }) => {
     const { results, next } = contents;
-    html += `<div class="card-box">
-        <h3>${catagory.toUpperCase()}</h3>`;
 
     results.forEach(film => {
         const { title, episode, director, producer, release_date } = film; // Im going to have to loop through these eventually
@@ -46,10 +71,8 @@ const displayFilms = ({ catagory, contents, html }) => {
 }
 
 
-const displayvehicles = ({ catagory, contents, html }) => {
+const displayvehicles = ({ contents, html }) => {
     const { results, next } = contents;
-    html += `<div class="card-box">
-        <h3>${catagory.toUpperCase()}</h3>`;
 
     results.forEach(vehicle => {
         const { name, model, manufacturer } = vehicle; // Im going to have to loop through these eventually
@@ -67,10 +90,8 @@ const displayvehicles = ({ catagory, contents, html }) => {
 }
 
 
-const displayStarships = ({ catagory, contents, html }) => {
+const displayStarships = ({ contents, html }) => {
     const { results, next } = contents;
-    html += `<div class="card-box">
-        <h3>${catagory.toUpperCase()}</h3>`;
 
     results.forEach(ship => {
         const { name, model, manufacturer } = ship; // Im going to have to loop through these eventually
@@ -88,6 +109,16 @@ const displayStarships = ({ catagory, contents, html }) => {
 }
 
 
+const commonHTML = (catagory) => {
+    const common =
+        `<div class="card-box">
+            <label for="filter-input" >Filter</label>
+            <input type="text" value="" class="filter-input"></input>
+            <h3>${catagory.toUpperCase()}</h3>`;
+    return common;
+}
+
+
 const renderFields = dataObj => {
 
     for (let key in dataObj) {
@@ -95,7 +126,7 @@ const renderFields = dataObj => {
             const catagoryObj = {};
             catagoryObj.catagory = key;
             catagoryObj.contents = dataObj[key];
-            catagoryObj.html = '';
+            catagoryObj.html = commonHTML(key);
 
             switch (catagoryObj.catagory) {
                 case 'people':

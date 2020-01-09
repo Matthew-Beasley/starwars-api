@@ -33,6 +33,16 @@ main {
     font-weight: bolder;
 }
 
+.card-box > label {
+    font-size: 1.25rem;
+    margin: 1rem 0rem 0rem 1rem;
+}
+
+.filter-input {
+    width: 80%;
+    height: 1.25rem;
+}
+
 h3 {
     margin-left: 2rem;
 }
