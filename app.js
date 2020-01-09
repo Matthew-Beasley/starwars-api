@@ -6,27 +6,47 @@ const makePaginator = () => {
     let vehiclesPage = 1;
     let starshipsPage = 1;
 
-    return ({ catagory, contents, html }, action) => {
-        let page;
+    return ({ catagory }, action) => { //should I put this function in my catagory object?
+
+        function calcPage(page) {
+            if (action === 'forward') {
+                page++;
+            }
+            else if (action === 'back') {
+                if (page-- < 0) {
+                    page--;
+                }
+                else {
+                    page = 1;
+                }
+            }
+            else if (action === 'reset') {
+                page = 1;
+            }
+        }
+
         switch (catagory) {
             case 'people':
-                page = peoplePage;
+                calcPage(peoplePage);
                 break;
             case 'films':
-                page = filmsPage;
+                calcPage(filmsPage);
                 break;
             case 'vehicles':
-                page = vehiclesPage;
+                calcPage(vehiclesPage);
                 break;
             case 'starships':
-                page = starshipsPage;
+                calcPage(starshipsPage);
                 break;
             default:
                 break;
-        }
 
+        }
     }
 }
+
+
+const paginator = makePaginator();
 
 
 const displayPeople = ({ contents, html }) => {
