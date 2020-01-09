@@ -8,7 +8,7 @@ const makePaginator = () => {
             page++;
         }
         else if (action === 'back') {
-            if (page-- < 0) {
+            if (page > 2) {
                 page--;
             }
             else {
@@ -125,11 +125,7 @@ const renderFields = dataObj => {
             catagoryObj.html = commonHTML(key);
             catagoryObj.paginator = makePaginator();
 
-            //////testing paginator ////////
-
-            /////////////////////////////////
-
-            switch (catagoryObj.catagory) {
+            switch (catagoryObj.catName) {
                 case 'people':
                     displayPeople(catagoryObj);
                     break;
