@@ -1,52 +1,28 @@
 
 
 const makePaginator = () => {
-    let peoplePage = 1;
-    let filmsPage = 1;
-    let vehiclesPage = 1;
-    let starshipsPage = 1;
+    let page = 1;
 
-    return ({ catagory }, action) => { //should I put this function in my catagory object?
-
-        function calcPage(page) {
-            if (action === 'forward') {
-                page++;
+    return (action) => {
+        if (action === 'forward') {
+            page++;
+        }
+        else if (action === 'back') {
+            if (page-- < 0) {
+                page--;
             }
-            else if (action === 'back') {
-                if (page-- < 0) {
-                    page--;
-                }
-                else {
-                    page = 1;
-                }
-            }
-            else if (action === 'reset') {
+            else {
                 page = 1;
             }
         }
-
-        switch (catagory) {
-            case 'people':
-                calcPage(peoplePage);
-                break;
-            case 'films':
-                calcPage(filmsPage);
-                break;
-            case 'vehicles':
-                calcPage(vehiclesPage);
-                break;
-            case 'starships':
-                calcPage(starshipsPage);
-                break;
-            default:
-                break;
-
+        else if (action === 'reset') {
+            page = 1;
+        }
+        else if (!action) {
+            return page;
         }
     }
 }
-
-
-const paginator = makePaginator();
 
 
 const displayPeople = ({ contents, html }) => {
@@ -144,9 +120,14 @@ const renderFields = dataObj => {
     for (let key in dataObj) {
         if (key) { //hack to get around linter error, need to get rid of this rule
             const catagoryObj = {};
-            catagoryObj.catagory = key;
+            catagoryObj.catName = key;
             catagoryObj.contents = dataObj[key];
             catagoryObj.html = commonHTML(key);
+            catagoryObj.paginator = makePaginator();
+
+            //////testing paginator ////////
+
+            /////////////////////////////////
 
             switch (catagoryObj.catagory) {
                 case 'people':
