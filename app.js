@@ -1,10 +1,13 @@
 
-
 const makePaginator = () => {
     let page = 1;
 
-    return (action) => {
-        if (action === 'forward') {
+    return (action, setPage) => {
+
+        if (action === 'set' && page !== undefined) {
+            page = setPage;
+        }
+        else if (action === 'forward') {
             page++;
         }
         else if (action === 'back') {
