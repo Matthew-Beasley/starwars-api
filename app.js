@@ -109,7 +109,7 @@ const displayStarships = ({ contents, html }) => {
     document.querySelector('main').innerHTML += html
 }
 
-// this will not update when I fetch another page (except I will regen entire page?)
+
 const commonHTML = ({ catName, contents, paginator }) => {
     const totalPages = Math.ceil(contents.count / 10);
 
@@ -125,7 +125,7 @@ const commonHTML = ({ catName, contents, paginator }) => {
 }
 
 
-// I think I can make this more robust by replacing the hard coded ordinals
+// Maybe make this more robust by replacing the hard coded ordinals (or not)
 const filterCatagory = ({ target }) => {
     const divClass = target.classList[1].split('-')[0];
     const cardBoxDivs = document.querySelectorAll(`.${divClass}-card-box > div`);
@@ -144,6 +144,8 @@ const filterCatagory = ({ target }) => {
 }
 
 
+//this will basically start from scratch on rendering a new data for "next" call
+// I will also need to update the catagory objects
 const getMoreData = (event) => {
     event.preventDefault();
     const { target } = event;
@@ -203,7 +205,7 @@ const fetchData = async event => {
     renderFields(sanitizedObj);
 }
 
-//move event listeners into render code (perhaps commonHTML?)
+
 document.querySelector('main').addEventListener('input', event => {
     if (event.target && event.target.classList.contains('filter-input')) {
         filterCatagory(event)
@@ -213,7 +215,8 @@ document.querySelector('main').addEventListener('input', event => {
 document.addEventListener('click', event => {
     if (event.target && event.target.classList.contains('people-submit')) {
         getMoreData(event)
+    }
 });
 
 
-window.addEventListener('load', fetchData); //this will probably have to go to make filtering work
+window.addEventListener('load', fetchData);
