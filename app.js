@@ -34,7 +34,7 @@ const displayPeople = ({ contents, html }) => {
     const { results, next } = contents;
 
     results.forEach(person => {
-        const { name, birth_year, films } = person; // Im going to have to loop through these eventually
+        const { name, birth_year, films } = person; // Im going to have to loop through these eventually to get dynamic data fields
         html +=
         `<div>
             <ul>
@@ -109,24 +109,38 @@ const displayStarships = ({ contents, html }) => {
     document.querySelector('main').innerHTML += html
 }
 
+// this will not update when I fetch another page (except I will regen entire page?)
+const commonHTML = ({ catName, contents, paginator }) => {
+    const totalPages = Math.ceil(contents.count / 10);
 
-const commonHTML = (catagory) => {
     const common =
-        `<div class="card-box">
+        `<div class="card-box ${catName}-card-box">
             <label for="filter-input" >Filter</label>
-            <input type="text" value="" class="filter-input ${catagory}-input"></input>
-            <button type="submit" class="submit ${catagory}-submit">Get Data</button>
-            <h3>${catagory.toUpperCase()}</h3>`;
+            <input type="text" value="" class="filter-input ${catName}-input"></input>
+            <p>Viewing Page ${paginator()} of ${totalPages} Pages</p>
+            <p>Tolal number of records is ${contents.count}</p>
+            <button type="submit" class="submit ${name}-submit">Get Data</button>
+            <h3>${catName.toUpperCase()}</h3>`;
     return common;
 }
 
 
-//not sure if these belong here or higher up
-// not sure if I can't just have one method and control with cat obj
-const filterCatagory = ({target}) => {
-    const catObj = catagoryObjects.filter(cat => { return cat.catName === 'people' });
-    console.log(catObj, target)
+// I think I can make this more robust by replacing the hard coded ordinals
+const filterCatagory = ({ target }) => {
+    const divClass = target.classList[1].split('-')[0];
+    const cardBoxDivs = document.querySelectorAll(`.${divClass}-card-box > div`);
+    [...cardBoxDivs].forEach(div => div.classList.add('hidden'));
 
+    const searchStr = document.querySelector(`.${target.classList[1]}`).value;
+
+    [...cardBoxDivs].forEach(div => {
+        if (div.children[0].children[0].innerText.toLowerCase().includes(searchStr.toLowerCase())) {
+            div.classList.remove('hidden');
+        }
+        else if (!div.classList.contains('hidden')) {
+            div.classList.add('hidden');
+        }
+    });
 }
 
 
@@ -140,31 +154,33 @@ const getMoreData = (event) => {
 
 const renderFields = dataObj => {
 
+    // eslint-disable-next-line guard-for-in
     for (let key in dataObj) {
-        if (key) { //hack to get around linter error, need to get rid of this rule
-            const catagoryObj = {};
-            catagoryObj.catName = key;
-            catagoryObj.contents = dataObj[key];
-            catagoryObj.html = commonHTML(key);
-            catagoryObj.paginator = makePaginator();
-            catagoryObjects.push(catagoryObj); //pushing to a global array for later use, Refactor this to go global or local, not both
 
-            switch (catagoryObj.catName) {
-                case 'people':
-                    displayPeople(catagoryObj);
-                    break;
-                case 'films':
-                    displayFilms(catagoryObj);
-                    break;
-                case 'vehicles':
-                    displayvehicles(catagoryObj);
-                    break;
-                case 'starships':
-                    displayStarships(catagoryObj);
-                    break;
-                default:
-                    break;
-            }
+        const catagoryObj = {};
+        catagoryObj.catName = key;
+        catagoryObj.contents = dataObj[key];
+        catagoryObj.paginator = makePaginator();
+        catagoryObj.html = commonHTML(catagoryObj);
+
+        // so far this global array of deta objects isn't being used. Yay me!
+        catagoryObjects.push(catagoryObj); //pushing to a global array for later use, Refactor this to go global or local, not both
+
+        switch (catagoryObj.catName) {
+            case 'people':
+                displayPeople(catagoryObj);
+                break;
+            case 'films':
+                displayFilms(catagoryObj);
+                break;
+            case 'vehicles':
+                displayvehicles(catagoryObj);
+                break;
+            case 'starships':
+                displayStarships(catagoryObj);
+                break;
+            default:
+                break;
         }
     }
 }
@@ -187,37 +203,17 @@ const fetchData = async event => {
     renderFields(sanitizedObj);
 }
 
-
-// eslint-disable-next-line complexity
-document.addEventListener('input', event => {
-    if (event.target && event.target.classList.contains('people-input')) {
-        filterCatagory(event)
-    }
-    else if (event.target && event.target.classList.contains('films-input')) {
-        filterCatagory(event)
-    }
-    else if (event.target && event.target.classList.contains('vehicles-input')) {
-        filterCatagory(event)
-    }
-    else if (event.target && event.target.classList.contains('starships-input')) {
+//move event listeners into render code (perhaps commonHTML?)
+document.querySelector('main').addEventListener('input', event => {
+    if (event.target && event.target.classList.contains('filter-input')) {
         filterCatagory(event)
     }
 });
 
-// eslint-disable-next-line complexity
 document.addEventListener('click', event => {
     if (event.target && event.target.classList.contains('people-submit')) {
         getMoreData(event)
-    }
-    else if (event.target && event.target.classList.contains('films-submit')) {
-        getMoreData(event)
-    }
-    else if (event.target && event.target.classList.contains('vehicles-submit')) {
-        getMoreData(event)
-    }
-    else if (event.target && event.target.classList.contains('starships-submit')) {
-        getMoreData(event)
-    }
 });
+
 
 window.addEventListener('load', fetchData); //this will probably have to go to make filtering work

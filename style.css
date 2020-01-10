@@ -9,7 +9,7 @@ h2 {
 main {
     display: flex;
     flex-direction: row;
-    flex-wrap: nowrap; /* not sure this is what I want */
+    flex-wrap: nowrap;
 }
 
 .card-box {
@@ -19,7 +19,10 @@ main {
     background-color: lightgray;
     border-left: 1px solid black;
     width: 25%;
+}
 
+.card-box > p {
+    margin: .25rem 1rem 0rem 1rem;
 }
 
 .card-box > div {
@@ -27,6 +30,10 @@ main {
     background-color: white;
     margin: .5rem;
     padding: .5rem;
+}
+
+.hidden {
+    display: none;
 }
 
 .box-header {
@@ -52,7 +59,7 @@ main {
     border-radius: 6px;
     color: white;
     background-color: black;
-    margin: .5rem 0rem .5rem 5rem;
+    margin: .5rem 0rem .5rem 35%;
 }
 
 h3 {
