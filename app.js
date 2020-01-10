@@ -1,4 +1,6 @@
 
+const catagoryObjects = [];
+
 const makePaginator = () => {
     let page = 1;
 
@@ -112,9 +114,27 @@ const commonHTML = (catagory) => {
     const common =
         `<div class="card-box">
             <label for="filter-input" >Filter</label>
-            <input type="text" value="" class="filter-input"></input>
+            <input type="text" value="" class="filter-input ${catagory}-input"></input>
+            <button type="submit" class="submit ${catagory}-submit">Get Data</button>
             <h3>${catagory.toUpperCase()}</h3>`;
     return common;
+}
+
+
+//not sure if these belong here or higher up
+// not sure if I can't just have one method and control with cat obj
+const filterCatagory = ({target}) => {
+    const catObj = catagoryObjects.filter(cat => { return cat.catName === 'people' });
+    console.log(catObj, target)
+
+}
+
+
+const getMoreData = (event) => {
+    event.preventDefault();
+    const { target } = event;
+    const catObj = catagoryObjects.filter(cat => { return cat.catName === 'people' });
+    console.log(catObj, target)
 }
 
 
@@ -127,6 +147,7 @@ const renderFields = dataObj => {
             catagoryObj.contents = dataObj[key];
             catagoryObj.html = commonHTML(key);
             catagoryObj.paginator = makePaginator();
+            catagoryObjects.push(catagoryObj); //pushing to a global array for later use, Refactor this to go global or local, not both
 
             switch (catagoryObj.catName) {
                 case 'people':
@@ -167,4 +188,36 @@ const fetchData = async event => {
 }
 
 
-window.addEventListener('load', fetchData);
+// eslint-disable-next-line complexity
+document.addEventListener('input', event => {
+    if (event.target && event.target.classList.contains('people-input')) {
+        filterCatagory(event)
+    }
+    else if (event.target && event.target.classList.contains('films-input')) {
+        filterCatagory(event)
+    }
+    else if (event.target && event.target.classList.contains('vehicles-input')) {
+        filterCatagory(event)
+    }
+    else if (event.target && event.target.classList.contains('starships-input')) {
+        filterCatagory(event)
+    }
+});
+
+// eslint-disable-next-line complexity
+document.addEventListener('click', event => {
+    if (event.target && event.target.classList.contains('people-submit')) {
+        getMoreData(event)
+    }
+    else if (event.target && event.target.classList.contains('films-submit')) {
+        getMoreData(event)
+    }
+    else if (event.target && event.target.classList.contains('vehicles-submit')) {
+        getMoreData(event)
+    }
+    else if (event.target && event.target.classList.contains('starships-submit')) {
+        getMoreData(event)
+    }
+});
+
+window.addEventListener('load', fetchData); //this will probably have to go to make filtering work
