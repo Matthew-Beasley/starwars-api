@@ -33,10 +33,8 @@ const makePaginator = () => {
 
 const displayPeople = (dataObj) => {
     const { results } = dataObj.contents;
-    let html = '';
-
-    //console.log(dataObj.contents.results)
-
+    let html = `<p>Viewing Page ${dataObj.paginator()}</p>
+    <p>Tolal number of records is ${dataObj.contents.count}</p>`;
     results.forEach(person => {
         const { name, birth_year, films } = person; // Im going to have to loop through these eventually to get dynamic data fields
         html +=
@@ -54,7 +52,8 @@ const displayPeople = (dataObj) => {
 
 const displayFilms = (dataObj) => {
     const { results } = dataObj.contents;
-    let html = '';
+    let html = `<p>Viewing Page ${dataObj.paginator()}</p>
+    <p>Tolal number of records is ${dataObj.contents.count}</p>`;
 
     results.forEach(film => {
         const { title, episode, director, producer, release_date } = film; // Im going to have to loop through these eventually
@@ -75,7 +74,8 @@ const displayFilms = (dataObj) => {
 
 const displayvehicles = (dataObj) => {
     const { results } = dataObj.contents;
-    let html = '';
+    let html = `<p>Viewing Page ${dataObj.paginator()}</p>
+    <p>Tolal number of records is ${dataObj.contents.count}</p>`;
 
     results.forEach(vehicle => {
         const { name, model, manufacturer } = vehicle; // Im going to have to loop through these eventually
@@ -94,8 +94,8 @@ const displayvehicles = (dataObj) => {
 
 const displayStarships = (dataObj) => {
     const { results } = dataObj.contents;
-
-    let html = '';
+    let html = `<p>Viewing Page ${dataObj.paginator()}</p>
+    <p>Tolal number of records is ${dataObj.contents.count}</p>`;
 
     results.forEach(ship => {
         const { name, model, manufacturer } = ship; // Im going to have to loop through these eventually
@@ -112,17 +112,13 @@ const displayStarships = (dataObj) => {
 }
 
 
-const commonHTML = ({contents, catName, paginator}) => {
-
-    const totalPages = Math.ceil(contents.count / 10);
-
+const commonHTML = (dataObj) => {
+    const { contents, catName, paginator } = dataObj;
     const common =
     `   <label for="filter-input" >Filter</label>
         <input type="text" value="" class="filter-input ${catName}-input"></input>
-        <p>Viewing Page ${paginator()} of ${totalPages} Pages</p>
-        <p>Tolal number of records is ${contents.count}</p>
         <button type="submit" class="submit ${catName}-submit">Get Data</button>
-        <button type="submit" class="submit" ${catName}-back">Back</button>
+        <button type="submit" class="back ${catName}-back">Back</button>
         <h3>${catName.toUpperCase()}</h3>`;
     return common;
 }
@@ -148,38 +144,35 @@ const filterCatagory = ({ target }) => {
 
 
 const repeatFetch = async (catagoryObject, direction) => {
-    let index = 0;
-    catagoryObjects.forEach((obj, idx) => {
-        if (obj.catName === catagoryObject.catName) {
-            index = idx;
-        }
-    });
 
     let promise;
-    //if()
-    promise = await axios.get(catagoryObjects[index].contents.next);
-//console.log(promise)
+    if (direction === 'forward') {
+        promise = await axios.get(catagoryObject.contents.next);
+        catagoryObject.paginator('forward');
+    }
+    else if (direction === 'back') {
+        promise = await axios.get(catagoryObject.contents.previous);
+        catagoryObject.paginator('back');
+    }
+
     const { results, next, previous } = promise.data;
-    console.log(next)
-    catagoryObjects[index].contents.next = next;
-    catagoryObjects[index].contents.previous = previous
-    catagoryObjects[index].html = commonHTML(catagoryObject);
-    catagoryObjects[index].contents.results = results;
-    catagoryObjects[index].previous = previous;
-    catagoryObjects[index].paginator('forward')
-    console.log(catagoryObject.paginator());
+    catagoryObject.contents.next = next;
+    catagoryObject.contents.previous = previous
+    catagoryObject.html = commonHTML(catagoryObject);
+    catagoryObject.contents.results = results;
+
     switch (catagoryObject.catName) {
         case 'people':
-            displayPeople(catagoryObjects[index]);
+            displayPeople(catagoryObject);
             break;
         case 'films':
-            displayFilms(catagoryObjects[index]);
+            displayFilms(catagoryObject);
             break;
         case 'vehicles':
-            displayvehicles(catagoryObjects[index]);
+            displayvehicles(catagoryObject);
             break;
         case 'starships':
-            displayStarships(catagoryObjects[index]);
+            displayStarships(catagoryObject);
             break;
         default:
             break;
@@ -187,18 +180,27 @@ const repeatFetch = async (catagoryObject, direction) => {
 }
 
 
-// use closure to hide data objects
-//this will basically start from scratch on rendering a new data for "next" call
-// I will also need to update the catagory objects, and this will be the first time I use the global version
 const getMoreData = event => {
     event.preventDefault();
-
     const { target } = event;
     const nameFromClass = target.classList[1].split('-')[0];
 
     for (let i = 0; i < catagoryObjects.length; i++) {
         if (catagoryObjects[i].catName === nameFromClass) {
-            repeatFetch(catagoryObjects[i]);
+            repeatFetch(catagoryObjects[i], 'forward');
+        }
+    }
+}
+
+
+const getLessData = event => {
+    event.preventDefault();
+    const { target } = event;
+    const nameFromClass = target.classList[1].split('-')[0];
+
+    for (let i = 0; i < catagoryObjects.length; i++) {
+        if (catagoryObjects[i].catName === nameFromClass) {
+            repeatFetch(catagoryObjects[i], 'back');
         }
     }
 }
@@ -276,8 +278,8 @@ main.addEventListener('click', event => {
 });
 
 main.addEventListener('click', event => {
-    if (event.target && event.target.classList.contains('submit')) {
-        getMoreData(event)
+    if (event.target && event.target.classList.contains('back')) {
+        getLessData(event)
     }
 });
 
