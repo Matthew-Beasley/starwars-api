@@ -25,7 +25,7 @@ main {
     margin: .25rem 1rem 0rem 1rem;
 }
 
-.card-box > div {
+.card-box > div > div {
     border: 1px solid ;
     background-color: white;
     margin: .5rem;

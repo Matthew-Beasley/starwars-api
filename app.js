@@ -1,4 +1,5 @@
 
+const main = document.querySelector('main');
 const catagoryObjects = [];
 
 const makePaginator = () => {
@@ -30,8 +31,11 @@ const makePaginator = () => {
 }
 
 
-const displayPeople = ({ contents, html }) => {
-    const { results, next } = contents;
+const displayPeople = (dataObj) => {
+    const { results } = dataObj.contents;
+    let html = '';
+
+    //console.log(dataObj.contents.results)
 
     results.forEach(person => {
         const { name, birth_year, films } = person; // Im going to have to loop through these eventually to get dynamic data fields
@@ -44,15 +48,13 @@ const displayPeople = ({ contents, html }) => {
             </ul>
         </div>`;
     });
-    html +=
-    '</div>';
-
-    document.querySelector('main').innerHTML += html;
+    document.querySelector(`.${dataObj.catName}-inner-div`).innerHTML = html;
 }
 
 
-const displayFilms = ({ contents, html }) => {
-    const { results, next } = contents;
+const displayFilms = (dataObj) => {
+    const { results } = dataObj.contents;
+    let html = '';
 
     results.forEach(film => {
         const { title, episode, director, producer, release_date } = film; // Im going to have to loop through these eventually
@@ -67,13 +69,13 @@ const displayFilms = ({ contents, html }) => {
             </ul>
         </div>`;
     });
-    html += '</div>';
-    document.querySelector('main').innerHTML += html;
+   document.querySelector(`.${dataObj.catName}-inner-div`).innerHTML = html;
 }
 
 
-const displayvehicles = ({ contents, html }) => {
-    const { results, next } = contents;
+const displayvehicles = (dataObj) => {
+    const { results } = dataObj.contents;
+    let html = '';
 
     results.forEach(vehicle => {
         const { name, model, manufacturer } = vehicle; // Im going to have to loop through these eventually
@@ -86,13 +88,14 @@ const displayvehicles = ({ contents, html }) => {
             </ul>
         </div>`;
     });
-    html += '</div>';
-    document.querySelector('main').innerHTML += html;
+    document.querySelector(`.${dataObj.catName}-inner-div`).innerHTML = html;
 }
 
 
-const displayStarships = ({ contents, html }) => {
-    const { results, next } = contents;
+const displayStarships = (dataObj) => {
+    const { results } = dataObj.contents;
+
+    let html = '';
 
     results.forEach(ship => {
         const { name, model, manufacturer } = ship; // Im going to have to loop through these eventually
@@ -105,22 +108,22 @@ const displayStarships = ({ contents, html }) => {
             </ul>
         </div>`;
     });
-    html += '</div>';
-    document.querySelector('main').innerHTML += html
+    document.querySelector(`.${dataObj.catName}-inner-div`).innerHTML = html;
 }
 
 
-const commonHTML = ({ catName, contents, paginator }) => {
+const commonHTML = ({contents, catName, paginator}) => {
+
     const totalPages = Math.ceil(contents.count / 10);
 
     const common =
-        `<div class="card-box ${catName}-card-box">
-            <label for="filter-input" >Filter</label>
-            <input type="text" value="" class="filter-input ${catName}-input"></input>
-            <p>Viewing Page ${paginator()} of ${totalPages} Pages</p>
-            <p>Tolal number of records is ${contents.count}</p>
-            <button type="submit" class="submit ${name}-submit">Get Data</button>
-            <h3>${catName.toUpperCase()}</h3>`;
+    `   <label for="filter-input" >Filter</label>
+        <input type="text" value="" class="filter-input ${catName}-input"></input>
+        <p>Viewing Page ${paginator()} of ${totalPages} Pages</p>
+        <p>Tolal number of records is ${contents.count}</p>
+        <button type="submit" class="submit ${catName}-submit">Get Data</button>
+        <button type="submit" class="submit" ${catName}-back">Back</button>
+        <h3>${catName.toUpperCase()}</h3>`;
     return common;
 }
 
@@ -128,12 +131,12 @@ const commonHTML = ({ catName, contents, paginator }) => {
 // Maybe make this more robust by replacing the hard coded ordinals (or not)
 const filterCatagory = ({ target }) => {
     const divClass = target.classList[1].split('-')[0];
-    const cardBoxDivs = document.querySelectorAll(`.${divClass}-card-box > div`);
-    [...cardBoxDivs].forEach(div => div.classList.add('hidden'));
+    const innerDivs = document.querySelectorAll(`.${divClass}-inner-div > div`);
+    [...innerDivs].forEach(div => div.classList.add('hidden'));
 
     const searchStr = document.querySelector(`.${target.classList[1]}`).value;
 
-    [...cardBoxDivs].forEach(div => {
+    [...innerDivs].forEach(div => {
         if (div.children[0].children[0].innerText.toLowerCase().includes(searchStr.toLowerCase())) {
             div.classList.remove('hidden');
         }
@@ -144,13 +147,60 @@ const filterCatagory = ({ target }) => {
 }
 
 
+const repeatFetch = async (catagoryObject, direction) => {
+    let index = 0;
+    catagoryObjects.forEach((obj, idx) => {
+        if (obj.catName === catagoryObject.catName) {
+            index = idx;
+        }
+    });
+
+    let promise;
+    //if()
+    promise = await axios.get(catagoryObjects[index].contents.next);
+//console.log(promise)
+    const { results, next, previous } = promise.data;
+    console.log(next)
+    catagoryObjects[index].contents.next = next;
+    catagoryObjects[index].contents.previous = previous
+    catagoryObjects[index].html = commonHTML(catagoryObject);
+    catagoryObjects[index].contents.results = results;
+    catagoryObjects[index].previous = previous;
+    catagoryObjects[index].paginator('forward')
+    console.log(catagoryObject.paginator());
+    switch (catagoryObject.catName) {
+        case 'people':
+            displayPeople(catagoryObjects[index]);
+            break;
+        case 'films':
+            displayFilms(catagoryObjects[index]);
+            break;
+        case 'vehicles':
+            displayvehicles(catagoryObjects[index]);
+            break;
+        case 'starships':
+            displayStarships(catagoryObjects[index]);
+            break;
+        default:
+            break;
+    }
+}
+
+
+// use closure to hide data objects
 //this will basically start from scratch on rendering a new data for "next" call
-// I will also need to update the catagory objects
-const getMoreData = (event) => {
+// I will also need to update the catagory objects, and this will be the first time I use the global version
+const getMoreData = event => {
     event.preventDefault();
+
     const { target } = event;
-    const catObj = catagoryObjects.filter(cat => { return cat.catName === 'people' });
-    console.log(catObj, target)
+    const nameFromClass = target.classList[1].split('-')[0];
+
+    for (let i = 0; i < catagoryObjects.length; i++) {
+        if (catagoryObjects[i].catName === nameFromClass) {
+            repeatFetch(catagoryObjects[i]);
+        }
+    }
 }
 
 
@@ -162,11 +212,18 @@ const renderFields = dataObj => {
         const catagoryObj = {};
         catagoryObj.catName = key;
         catagoryObj.contents = dataObj[key];
+        catagoryObj.url = dataObj.next;
         catagoryObj.paginator = makePaginator();
-        catagoryObj.html = commonHTML(catagoryObj);
+        catagoryObj.html = `
+        <div class="card-box ${catagoryObj.catName}-card-box">`;
+            catagoryObj.html += commonHTML(catagoryObj);
+            catagoryObj.html += `
+            <div class="${catagoryObj.catName}-inner-div inner-div">        
+            </div>
+        </div>`;
+        catagoryObjects.push(catagoryObj);
 
-        // so far this global array of deta objects isn't being used. Yay me!
-        catagoryObjects.push(catagoryObj); //pushing to a global array for later use, Refactor this to go global or local, not both
+        main.innerHTML += catagoryObj.html;
 
         switch (catagoryObj.catName) {
             case 'people':
@@ -206,17 +263,22 @@ const fetchData = async event => {
 }
 
 
-document.querySelector('main').addEventListener('input', event => {
+main.addEventListener('input', event => {
     if (event.target && event.target.classList.contains('filter-input')) {
         filterCatagory(event)
     }
 });
 
-document.addEventListener('click', event => {
-    if (event.target && event.target.classList.contains('people-submit')) {
+main.addEventListener('click', event => {
+    if (event.target && event.target.classList.contains('submit')) {
         getMoreData(event)
     }
 });
 
+main.addEventListener('click', event => {
+    if (event.target && event.target.classList.contains('submit')) {
+        getMoreData(event)
+    }
+});
 
 window.addEventListener('load', fetchData);
